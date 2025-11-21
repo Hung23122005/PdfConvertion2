@@ -1,44 +1,72 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%
+Boolean loginStatus = (Boolean) session.getAttribute("login-status");
+Boolean signUpStatus = (Boolean) session.getAttribute("signup-status");
+%>
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>PDF Conversion</title>
+<title>PDF to Word Converter</title>
 <link rel="stylesheet" href="./css/common.css" />
 <link rel="stylesheet" href="./css/convertion/convertion.css" />
 <link rel="stylesheet" type="text/css" href="css/login/login.css">
 </head>
 <body>
   <%@include file="header.jsp"%>
+
   <div class="content">
     <div class="content-header">
       <h1 class="content-title">PDF to WORD Conversion</h1>
-      <h2 class="content-subtitle">Converting pdf documents to
-        word is very convenient</h2>
+      <h2 class="content-subtitle">Converting pdf documents to word is very convenient</h2>
     </div>
     <div class="content-uploader">
-      <a href="#!" class="btn-upload" id="uploadLink"> Choose PDF
-        file</a>
+      <a href="#!" class="btn-upload" id="uploadLink">Choose PDF file</a>
     </div>
-    <%
-    if ((loginStatus != null && loginStatus) || (signUpStatus != null && signUpStatus)) {
-    %>
+
+    <% if ((loginStatus != null && loginStatus) || (signUpStatus != null && signUpStatus)) { %>
     <div class="content-uploader">
-        <a href="./ListConvertServlet" class="btn-upload">View list converted</a>
+        <a href="list" class="btn-upload">View converted files</a>
     </div>
-    <%
-    }%>
+    <% } %>
   </div>
+
   <%@include file="login-modal.jsp"%>
   <%@include file="signup-modal.jsp"%>
-  <script src="./js/index.js"></script>
-  <script src="./js/signup.js"></script>
+
+  <!-- THÊM DÒNG NÀY – TRUYỀN CONTEXT PATH CHO JS -->
   <script>
-  	const loginStatus = <%=loginStatus%>;
-	
-  	if(loginStatus != null && !loginStatus) {
-  		document.querySelector('.login-modal').style.display = 'flex';
-  	}
+    const contextPath = '<%= request.getContextPath() %>';  // → /PDFConverterPro
+  </script>
+
+  <script src="./js/main.js"></script>
+
+  <script>
+    if (<%= (loginStatus != null && !loginStatus) %>) {
+      document.querySelector('.login-modal').classList.add('show');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelector('.text-login')?.addEventListener('click', () => {
+        document.querySelector('.login-modal').classList.add('show');
+      });
+
+      document.querySelector('.btn-signup')?.addEventListener('click', () => {
+        document.querySelector('.signup-modal').classList.add('show');
+      });
+
+      document.querySelectorAll('.close').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.modal').forEach(m => m.classList.remove('show'));
+        });
+      });
+
+      document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('click', e => {
+          if (e.target === modal) modal.classList.remove('show');
+        });
+      });
+    });
   </script>
 </body>
 </html>

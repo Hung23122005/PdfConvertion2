@@ -59,24 +59,29 @@ public class LoginServlet extends HttpServlet {
     private void checkLogin(HttpServletRequest request, HttpServletResponse response,
                             String username, String password) throws IOException, ServletException {
         User user = new LoginBO().checkLogin(username, password);
+
         if (user != null) {
             request.getSession().setAttribute("login-status", true);
+            request.getSession().setAttribute("username", username);
         } else {
             request.getSession().setAttribute("login-status", false);
+            request.getSession().removeAttribute("username");
         }
-        request.getSession().setAttribute("username", username);
+
         Utils.redirectToPage(request, response, "/index.jsp");
     }
 
     private void signUp(HttpServletRequest request, HttpServletResponse response,
-                        String username, String password) throws IOException, ServletException {
-        boolean status = new LoginBO().createAccount(username, password);
-        if (status) {
-            request.getSession().setAttribute("username", username);
-        }
-        request.getSession().setAttribute("signup-status", status);
-        Utils.redirectToPage(request, response, "/index.jsp");
-    }
+            String username, String password) throws IOException, ServletException {
+
+		boolean status = new LoginBO().createAccount(username, password);
+		request.getSession().setAttribute("signup-status", status);
+		if (status) {
+	        request.getSession().setAttribute("login-status", false);
+	    }
+		Utils.redirectToPage(request, response, "/index.jsp");
+	}
+
 
     private void logout(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {

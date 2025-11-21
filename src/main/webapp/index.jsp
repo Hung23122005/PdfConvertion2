@@ -24,7 +24,7 @@ Boolean signUpStatus = (Boolean) session.getAttribute("signup-status");
       <a href="#!" class="btn-upload" id="uploadLink">Choose PDF file</a>
     </div>
 
-    <% if ((loginStatus != null && loginStatus) || (signUpStatus != null && signUpStatus)) { %>
+    <% if (loginStatus != null && loginStatus) { %>
     <div class="content-uploader">
         <a href="list" class="btn-upload">View converted files</a>
     </div>
@@ -44,6 +44,18 @@ Boolean signUpStatus = (Boolean) session.getAttribute("signup-status");
   <script>
     if (<%= (loginStatus != null && !loginStatus) %>) {
       document.querySelector('.login-modal').classList.add('show');
+    }
+
+    // Show success message after signup
+    if (<%= (signUpStatus != null && signUpStatus) %>) {
+      alert('Account created successfully! Please login to continue.');
+      <% session.removeAttribute("signup-status"); %>
+    }
+    
+    // Show error message if signup failed
+    if (<%= (signUpStatus != null && !signUpStatus) %>) {
+      alert('Signup failed! Username might already exist.');
+      <% session.removeAttribute("signup-status"); %>
     }
 
     document.addEventListener('DOMContentLoaded', function() {

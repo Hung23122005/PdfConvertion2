@@ -33,7 +33,7 @@ public class LoginDAO {
 		try {
 			Connection connection = Utils.getConnection();
 			if (connection != null) {
-				String query = "insert into users values(?,?)";
+				String query = "insert into users(username, password) values(?, ?)";
 				PreparedStatement pst = connection.prepareStatement(query);
 				pst.setString(1, username);
 				pst.setString(2, password);

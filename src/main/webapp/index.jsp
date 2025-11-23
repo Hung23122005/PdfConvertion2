@@ -34,9 +34,40 @@ Boolean signUpStatus = (Boolean) session.getAttribute("signup-status");
   <%@include file="login-modal.jsp"%>
   <%@include file="signup-modal.jsp"%>
 
+  <!-- PDF Preview Modal -->
+  <div id="pdfPreviewModal" class="pdf-preview-modal">
+    <div class="pdf-preview-content">
+      <div class="pdf-preview-header">
+        <h3 id="pdfPreviewTitle">Xem trước PDF</h3>
+        <button class="pdf-preview-close" id="pdfPreviewClose">&times;</button>
+      </div>
+      <div class="pdf-preview-body">
+        <div id="pdfPreviewContainer">
+          <div id="pdfCanvasContainer"></div>
+          <div class="pdf-preview-controls">
+            <button id="pdfPrevPage" class="pdf-btn">← Trước</button>
+            <span id="pdfPageInfo">Trang 1 / 1</span>
+            <button id="pdfNextPage" class="pdf-btn">Sau →</button>
+          </div>
+        </div>
+      </div>
+      <div class="pdf-preview-footer">
+        <button id="pdfCancelBtn" class="pdf-btn-cancel">Hủy</button>
+        <button id="pdfConvertBtn" class="pdf-btn-convert">Chuyển đổi sang Word</button>
+      </div>
+    </div>
+  </div>
+
   <!-- THÊM DÒNG NÀY – TRUYỀN CONTEXT PATH CHO JS -->
   <script>
     const contextPath = '<%= request.getContextPath() %>';  // → /PDFConverterPro
+  </script>
+
+  <!-- PDF.js Library -->
+  <script type="module">
+    import * as pdfjsLib from '<%= request.getContextPath() %>/pdfjs/build/pdf.mjs';
+    window.pdfjsLib = pdfjsLib;
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '<%= request.getContextPath() %>/pdfjs/build/pdf.worker.mjs';
   </script>
 
   <script src="./js/main.js"></script>

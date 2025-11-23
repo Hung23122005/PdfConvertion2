@@ -4,13 +4,13 @@ import java.io.*;
 import java.nio.file.*;
 import javax.servlet.*;
 import javax.servlet.http.*;
-import javax.servlet.annotation.MultipartConfig;  // BẮT BUỘC PHẢI CÓ
+import javax.servlet.annotation.MultipartConfig;
 import model.BO.*;
 
 @MultipartConfig(
-    fileSizeThreshold = 1024 * 1024 * 10,   // 10MB
-    maxFileSize = 1024 * 1024 * 100,        // 100MB giới hạn file
-    maxRequestSize = 1024 * 1024 * 150      // tổng request
+    fileSizeThreshold = 1024 * 1024 * 10,  // 10MB
+    maxFileSize = 1024 * 1024 * 100,       // 100MB
+    maxRequestSize = 1024 * 1024 * 150
 )
 public class ConverterAsyncServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
@@ -19,35 +19,42 @@ public class ConverterAsyncServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        // DÒNG TEST ĐỂ BIẾT FILE ĐÃ QUA SERVER CHƯA
-        resp.setContentType("text/plain");
-        resp.getWriter().println("OK - FILE ĐÃ ĐẾN SERVER THÀNH CÔNG! TASKID: " + req.getParameter("taskId"));
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding("UTF-8");
+
+        // LẤY taskId TỪ URL (do worker gửi qua ?taskId=...)
+        String taskId = req.getParameter("taskId");
+        if (taskId == null || taskId.trim().isEmpty()) {
+            taskId = "task_" + System.currentTimeMillis();
+        }
 
         Part part = req.getPart("file");
-        String taskId = req.getParameter("taskId");
-
-        if (part == null || taskId == null) {
-            resp.getWriter().println("ERROR: Thiếu file hoặc taskId");
+        if (part == null || part.getSize() == 0) {
+            resp.getWriter().write("{\"error\":\"Không có file\"}");
             return;
         }
 
         String origName = Paths.get(part.getSubmittedFileName()).getFileName().toString();
         if (!origName.toLowerCase().endsWith(".pdf")) {
-            resp.getWriter().println("{\"error\":\"Chỉ chấp nhận file PDF\"}");
+            resp.getWriter().write("{\"error\":\"Chỉ chấp nhận file PDF\"}");
             return;
         }
 
         String uploadDir = req.getServletContext().getRealPath("/upload");
         new File(uploadDir).mkdirs();
+        System.out.println("UPLOAD PATH = " + uploadDir);
 
-        String serverName = taskId + "_" + origName;
-        String fullPath = uploadDir + File.separator + serverName;
+
+        String serverFileName = taskId + "_" + origName;
+        String fullPath = uploadDir + File.separator + serverFileName;
         part.write(fullPath);
 
+        // TẠO TASK + ĐĂNG KÝ VÀO TASKMANAGER TRƯỚC KHI START
         ConvertTask task = new ConvertTask(taskId, fullPath, origName, req.getSession());
-        TaskManager.add(taskId, task);
-        task.start();
+        TaskManager.add(taskId, task);   // DÒNG QUAN TRỌNG NHẤT
+        task.start();                    // BÂY GIỜ MỚI START
 
-        resp.getWriter().println("{\"taskId\":\"" + taskId + "\"}");
+        // TRẢ JSON CHO FRONTEND
+        resp.getWriter().write("{\"taskId\":\"" + taskId + "\"}");
     }
 }

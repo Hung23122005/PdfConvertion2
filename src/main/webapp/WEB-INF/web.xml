@@ -1,29 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://xmlns.jcp.org/xml/ns/javaee"
-         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee 
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
          http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
          version="4.0">
 
     <display-name>PDF to Word Converter - Web Worker Version</display-name>
 
-    <!-- ==================== TẤT CẢ SERVLET ĐỀU DÙNG WEB.XML ==================== -->
-
-    <!-- 1. Upload + chạy ngầm (Web Worker gọi) -->
+    <!-- 1. Upload + chạy ngầm -->
+    
+    <!-- Chạy cleanup khi server khởi động -->
+	<servlet>
+    	<servlet-name>StartupServlet</servlet-name>
+    	<servlet-class>controller.StartupServlet</servlet-class>
+    	<load-on-startup>1</load-on-startup>
+	</servlet>
+    
     <servlet>
         <servlet-name>ConverterAsyncServlet</servlet-name>
         <servlet-class>controller.ConverterAsyncServlet</servlet-class>
-        <multipart-config>
-            <max-file-size>104857600</max-file-size>      <!-- 100MB -->
-            <max-request-size>104857600</max-request-size>
-        </multipart-config>
+        <!-- ĐÃ XÓA <multipart-config> Ở ĐÂY → ĐỂ ANNOTATION TRONG JAVA QUẢN LÝ -->
     </servlet>
     <servlet-mapping>
         <servlet-name>ConverterAsyncServlet</servlet-name>
-        <url-pattern>/convert</url-pattern>   <!-- Dùng /convert cho đẹp -->
+        <url-pattern>/convert</url-pattern>
     </servlet-mapping>
 
-    <!-- 2. Kiểm tra trạng thái convert (polling) -->
+    <!-- Các servlet khác giữ nguyên -->
     <servlet>
         <servlet-name>StatusServlet</servlet-name>
         <servlet-class>controller.StatusServlet</servlet-class>
@@ -33,7 +36,6 @@
         <url-pattern>/status</url-pattern>
     </servlet-mapping>
 
-    <!-- 3. Tải file Word khi xong -->
     <servlet>
         <servlet-name>DownloadServlet</servlet-name>
         <servlet-class>controller.DownloadServlet</servlet-class>
@@ -43,7 +45,6 @@
         <url-pattern>/download</url-pattern>
     </servlet-mapping>
 
-    <!-- 4. Đăng nhập / Đăng ký -->
     <servlet>
         <servlet-name>LoginServlet</servlet-name>
         <servlet-class>controller.LoginServlet</servlet-class>
@@ -53,7 +54,6 @@
         <url-pattern>/login</url-pattern>
     </servlet-mapping>
 
-    <!-- 5. Xem danh sách file đã convert -->
     <servlet>
         <servlet-name>ListConvertServlet</servlet-name>
         <servlet-class>controller.ListConvertServlet</servlet-class>
@@ -63,7 +63,6 @@
         <url-pattern>/list</url-pattern>
     </servlet-mapping>
 
-    <!-- Trang chủ + JSP -->
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>

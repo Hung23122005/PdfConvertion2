@@ -1,51 +1,61 @@
 let worker = null;
+
+// ===== NEW FEATURE: Smooth progress =====
+let smoothProgress = 0;
+
+// ===== MAIN FEATURE: PDF Preview =====
 let pdfDoc = null;
 let currentPage = 1;
 let totalPages = 0;
 let currentFile = null;
-
-// PDF.js will be loaded as a module
-// We'll access it via window.pdfjsLib after it loads
 let pdfjsLib = null;
 
+
+// ==================================
+// 🔥 Load PDF.js
+// ==================================
 async function loadPdfJs() {
     if (pdfjsLib) return pdfjsLib;
-    
+
     try {
-        // Wait for PDF.js to be available
-        // PDF.js is loaded as a module, so we need to access it differently
-        if (typeof window.pdfjsLib !== 'undefined') {
+        if (typeof window.pdfjsLib !== "undefined") {
             pdfjsLib = window.pdfjsLib;
         } else {
-            // Try dynamic import
-            const pdfjsModule = await import(contextPath + '/pdfjs/build/pdf.mjs');
+            const pdfjsModule = await import(contextPath + "/pdfjs/build/pdf.mjs");
             pdfjsLib = pdfjsModule;
             window.pdfjsLib = pdfjsLib;
         }
-        
-        // Set worker path
-        if (pdfjsLib && pdfjsLib.GlobalWorkerOptions) {
-            pdfjsLib.GlobalWorkerOptions.workerSrc = contextPath + '/pdfjs/build/pdf.worker.mjs';
+
+        if (pdfjsLib.GlobalWorkerOptions) {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = contextPath + "/pdfjs/build/pdf.worker.mjs";
         }
-        
+
         return pdfjsLib;
+
     } catch (error) {
-        console.error('Error loading PDF.js:', error);
-        // Fallback: try to use global pdfjsLib if available
-        if (typeof pdfjsLib === 'undefined' && typeof window.pdfjsLib !== 'undefined') {
-            pdfjsLib = window.pdfjsLib;
-            return pdfjsLib;
-        }
+        console.error("Error loading PDF.js:", error);
         throw error;
     }
 }
 
+
+
+// ==================================
+// ⏳ Khi trang load – kiểm tra resume task
+// ==================================
 document.addEventListener("DOMContentLoaded", function () {
+
+    const resumeTaskId = sessionStorage.getItem("activeTaskId");
+    if (resumeTaskId) {
+        console.log("🔄 Resume task:", resumeTaskId);
+        showProgress("Đang tiếp tục chuyển đổi...");
+        startPolling(resumeTaskId);
+    }
+
+    setupPreviewModal();
+
     const uploadLink = document.getElementById("uploadLink");
     if (!uploadLink) return;
-
-    // Setup preview modal controls
-    setupPreviewModal();
 
     uploadLink.addEventListener("click", function (e) {
         e.preventDefault();
@@ -58,15 +68,19 @@ document.addEventListener("DOMContentLoaded", function () {
             const file = this.files[0];
             if (!file) return;
 
-            currentFile = file;
-            await showPdfPreview(file);
+            currentFile = file;   // Giữ file để convert sau
+            await showPdfPreview(file); // Hiện preview PDF
         };
 
         input.click();
     });
 });
 
-// Setup preview modal event listeners
+
+
+// ==================================
+// 📌 PREVIEW PDF – GỘP TỪ MAIN
+// ==================================
 function setupPreviewModal() {
     const modal = document.getElementById("pdfPreviewModal");
     const closeBtn = document.getElementById("pdfPreviewClose");
@@ -75,16 +89,10 @@ function setupPreviewModal() {
     const prevBtn = document.getElementById("pdfPrevPage");
     const nextBtn = document.getElementById("pdfNextPage");
 
-    // Close modal
     [closeBtn, cancelBtn].forEach(btn => {
-        if (btn) {
-            btn.addEventListener("click", () => {
-                closePdfPreview();
-            });
-        }
+        if (btn) btn.addEventListener("click", closePdfPreview);
     });
 
-    // Convert button
     if (convertBtn) {
         convertBtn.addEventListener("click", () => {
             if (currentFile) {
@@ -94,7 +102,6 @@ function setupPreviewModal() {
         });
     }
 
-    // Page navigation
     if (prevBtn) {
         prevBtn.addEventListener("click", () => {
             if (currentPage > 1) {
@@ -113,154 +120,98 @@ function setupPreviewModal() {
         });
     }
 
-    // Close on outside click
     if (modal) {
         modal.addEventListener("click", (e) => {
-            if (e.target === modal) {
-                closePdfPreview();
-            }
+            if (e.target === modal) closePdfPreview();
         });
     }
 }
 
-// Show PDF preview
 async function showPdfPreview(file) {
     const modal = document.getElementById("pdfPreviewModal");
     const title = document.getElementById("pdfPreviewTitle");
     const container = document.getElementById("pdfCanvasContainer");
 
-    if (!modal || !container) return;
-
-    // Show modal
     modal.classList.add("show");
-    if (title) {
-        title.textContent = 'Xem trước: ' + file.name;
-    }
-
-    // Show loading
-    container.innerHTML = '<div style="padding: 40px; text-align: center; color: #666;">Đang tải PDF...</div>';
+    title.textContent = "Xem trước: " + file.name;
+    container.innerHTML = "<div style='padding:40px;text-align:center;'>Đang tải PDF...</div>";
 
     try {
-        // Load PDF.js
         const pdfjs = await loadPdfJs();
-
-        // Read file as array buffer
         const arrayBuffer = await file.arrayBuffer();
-
-        // Load PDF document
         const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
         pdfDoc = await loadingTask.promise;
+
         totalPages = pdfDoc.numPages;
         currentPage = 1;
 
-        // Render first page
         await renderPage(1);
 
-    } catch (error) {
-        console.error("Error loading PDF:", error);
-        container.innerHTML =
-            '<div style="padding: 40px; text-align: center; color: #e74c3c;">' +
-                '<p style="font-size: 18px; margin-bottom: 10px;">Lỗi khi tải PDF</p>' +
-                '<p style="font-size: 14px; color: #666;">' + error.message + '</p>' +
-            '</div>';
+    } catch (err) {
+        console.error(err);
+        container.innerHTML = "Lỗi tải PDF.";
     }
 }
 
-// Render a specific page
 async function renderPage(pageNum) {
     if (!pdfDoc) return;
 
     const container = document.getElementById("pdfCanvasContainer");
     const pageInfo = document.getElementById("pdfPageInfo");
-    const prevBtn = document.getElementById("pdfPrevPage");
-    const nextBtn = document.getElementById("pdfNextPage");
 
-    try {
-        // Get page
-        const page = await pdfDoc.getPage(pageNum);
-        const viewport = page.getViewport({ scale: 1.5 });
+    const page = await pdfDoc.getPage(pageNum);
+    const viewport = page.getViewport({ scale: 1.5 });
 
-        // Create canvas
-        const canvas = document.createElement("canvas");
-        const context = canvas.getContext("2d");
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
 
-        // Clear container and add canvas
-        container.innerHTML = "";
-        container.appendChild(canvas);
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
 
-        // Render PDF page
-        const renderContext = {
-            canvasContext: context,
-            viewport: viewport
-        };
+    container.innerHTML = "";
+    container.appendChild(canvas);
 
-        await page.render(renderContext).promise;
+    await page.render({ canvasContext: ctx, viewport: viewport }).promise;
 
-        // Update page info
-        if (pageInfo) {
-            pageInfo.textContent = 'Trang ' + pageNum + ' / ' + totalPages;
-        }
-
-        // Update navigation buttons
-        if (prevBtn) {
-            prevBtn.disabled = pageNum <= 1;
-        }
-        if (nextBtn) {
-            nextBtn.disabled = pageNum >= totalPages;
-        }
-
-    } catch (error) {
-        console.error("Error rendering page:", error);
-        if (container) {
-            container.innerHTML =
-                '<div style="padding: 40px; text-align: center; color: #e74c3c;">' +
-                    'Lỗi khi hiển thị trang ' + pageNum +
-                '</div>';
-        }
-    }
+    pageInfo.textContent = `Trang ${pageNum} / ${totalPages}`;
 }
 
-// Close PDF preview
 function closePdfPreview() {
     const modal = document.getElementById("pdfPreviewModal");
-    if (modal) {
-        modal.classList.remove("show");
-    }
+    modal.classList.remove("show");
 
-    // Dọn PDF khỏi bộ nhớ
-    if (pdfDoc) {
-        pdfDoc.destroy();
-        pdfDoc = null;
-    }
+    if (pdfDoc) pdfDoc.destroy();
+    pdfDoc = null;
 
     currentPage = 1;
     totalPages = 0;
-
-    // ❌ Không được reset currentFile
-    // Nếu reset thì startConvert(currentFile) sẽ null → convert fail
 }
 
 
 
-// =======================
-// ⚡ BẮT ĐẦU UPLOAD & CONVERT
-// =======================
+// ==================================
+// 🚀 BẮT ĐẦU UPLOAD + CONVERT = GỘP
+// ==================================
 function startConvert(file) {
     const taskId = "task_" + Date.now();
 
     showProgress(file.name);
 
     if (worker) worker.terminate();
+
     worker = new Worker(contextPath + "/js/uploadWorker.js");
 
     worker.onmessage = function (e) {
+
         if (e.data.type === "progress") {
             updateProgress(e.data.percent);
 
         } else if (e.data.type === "uploaded") {
-            updateMessage("Đang chuyển đổi sang Word...");
+
+            updateMessage("Upload xong! Đang chuyển đổi...");
+
+            sessionStorage.setItem("activeTaskId", taskId);
+
             startPolling(taskId);
 
         } else if (e.data.type === "error") {
@@ -278,41 +229,52 @@ function startConvert(file) {
 
 
 
-// =======================
-// ⚡ PROGRESS UI
-// =======================
+// ==================================
+// UI PROGRESS – GỘP MỚI + CŨ
+// ==================================
 function showProgress(fileName) {
     let box = document.getElementById("progressContainer");
+
     if (!box) {
         box = document.createElement("div");
         box.id = "progressContainer";
 
-        box.innerHTML =
-            '<div style="margin:50px auto; max-width:700px; padding:25px; background:#fff; border-radius:12px; box-shadow:0 5px 15px rgba(0,0,0,0.1); text-align:center;">' +
-                '<p><strong>Đang xử lý:</strong> <span id="progFileName">' + fileName + '</span></p>' +
-                '<div style="width:100%; height:40px; background:#eee; border-radius:10px; overflow:hidden;">' +
-                    '<div id="progBar" style="width:0%; height:100%; background:#fa4f0b; transition:width .6s ease; color:white; line-height:40px; font-weight:bold;">' +
-                        '0%' +
-                    '</div>' +
-                '</div>' +
-                '<p id="progMsg" style="color:#555; font-size:15px;">Đang upload...</p>' +
-            '</div>';
+        box.innerHTML = `
+            <div style="margin:50px auto; max-width:700px; padding:25px; background:#fff; border-radius:12px; text-align:center;">
+                <p><strong>Đang xử lý:</strong> <span id="progFileName">${fileName}</span></p>
+                <div style="width:100%; height:40px; background:#eee; border-radius:10px; overflow:hidden;">
+                    <div id="progBar"
+                         style="width:0%; height:100%; background:#fa4f0b; line-height:40px; color:white; font-weight:bold;">0%</div>
+                </div>
+                <p id="progMsg" style="margin-top:10px;">Đang chuẩn bị...</p>
+            </div>
+        `;
 
         document.querySelector(".content").appendChild(box);
-    } else {
-        box.style.display = "block";
-        document.getElementById("progFileName").textContent = fileName;
     }
 
+    smoothProgress = 0;
     updateProgress(0);
 }
 
-function updateProgress(percent) {
-    const bar = document.getElementById("progBar");
-    if (bar) {
-        bar.style.width = percent + "%";
-        bar.textContent = percent + "%";
+function updateProgress(targetPercent) {
+    if (targetPercent < smoothProgress) {
+        targetPercent = smoothProgress;
     }
+
+    const bar = document.getElementById("progBar");
+    if (!bar) return;
+
+    const step = () => {
+        if (smoothProgress < targetPercent) {
+            smoothProgress++;
+            bar.style.width = smoothProgress + "%";
+            bar.textContent = smoothProgress + "%";
+            requestAnimationFrame(step);
+        }
+    };
+
+    requestAnimationFrame(step);
 }
 
 function updateMessage(msg) {
@@ -320,36 +282,65 @@ function updateMessage(msg) {
     if (el) el.innerHTML = msg;
 }
 
+function updateStatus(state, msg, part, total) {
+    const el = document.getElementById("progMsg");
+    if (!el) return;
+
+    if (state === "queued") el.innerHTML = "Đang xếp hàng xử lý...";
+    else if (state === "splitting_pdf") el.innerHTML = "Đang tách PDF...";
+    else if (state.startsWith("converting_part_"))
+        el.innerHTML = `Đang xử lý phần ${part}/${total}...`;
+    else if (state === "merging") el.innerHTML = "Đang gộp file...";
+    else if (state === "saving_to_db") el.innerHTML = "Đang lưu dữ liệu...";
+    else el.innerHTML = msg;
+}
+
 function hideProgress() {
     const box = document.getElementById("progressContainer");
     if (box) box.style.display = "none";
 }
 
-// =======================
-// ⚡ POLLING CHECK STATUS
-// =======================
+
+
+// ==================================
+// 🔄 POLLING = FULL NEW VERSION
+// ==================================
 function startPolling(taskId) {
     const interval = setInterval(() => {
-        fetch(contextPath + "/status?taskId=" + taskId)
+
+        fetch(contextPath + "/status?taskId=" + encodeURIComponent(taskId) + "&_=" + Date.now())
             .then(r => r.json())
             .then(data => {
-                if (data.status === "done") {
+
+                if (typeof data.progress === "number") {
+                    updateProgress(data.progress);
+                }
+
+                if (data.status) {
+                    updateStatus(data.status, data.message, data.currentPart, data.totalPart);
+                }
+
+                if (data.status === "done" && data.file) {
                     clearInterval(interval);
                     updateProgress(100);
 
-                    updateMessage(
-                        'Hoàn thành! ' +
-                        '<a href="' + contextPath + '/download?file=' + data.file + '" ' +
-                           'style="color:#fa4f0b; font-weight:bold;">' +
-                           'Tải file Word ngay' +
-                        '</a>'
-                    );
+                    sessionStorage.removeItem("activeTaskId");
 
-                } else if (data.status === "processing") {
-                    const fake = 70 + Math.random() * 25;
-                    updateProgress(Math.min(fake, 98));
+                    updateMessage(`
+                        Hoàn thành! 🎉<br/>
+                        <a href="${contextPath}/download?file=${data.file}"
+                           style="display:inline-block; margin-top:10px; background:#28a745; color:white; padding:10px 22px; border-radius:8px; font-weight:bold;">
+                            Tải file Word
+                        </a>
+                    `);
+                }
+
+                if (data.status === "error") {
+                    clearInterval(interval);
+                    updateMessage("Có lỗi xảy ra: " + data.message);
                 }
             })
             .catch(() => {});
-    }, 3000);
+
+    }, 1200);
 }

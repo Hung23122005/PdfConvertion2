@@ -29,14 +29,26 @@ public class LoginDAO {
 		return user;
 	}
 
-	public boolean createAccount(String username, String password) {
+	public boolean createAccount(String username, String password, String email, String fullName,
+								 String phone, String dateOfBirth, String address, String gender) {
 		try {
 			Connection connection = Utils.getConnection();
 			if (connection != null) {
-				String query = "insert into users(username, password) values(?, ?)";
+				String query = "INSERT INTO users(username, password, email, full_name, phone, date_of_birth, address, gender) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
 				PreparedStatement pst = connection.prepareStatement(query);
 				pst.setString(1, username);
 				pst.setString(2, password);
+				pst.setString(3, email);
+				pst.setString(4, fullName);
+				pst.setString(5, phone);
+				// Xử lý dateOfBirth: nếu rỗng thì set NULL
+				if (dateOfBirth != null && !dateOfBirth.trim().isEmpty()) {
+					pst.setString(6, dateOfBirth);
+				} else {
+					pst.setNull(6, java.sql.Types.DATE);
+				}
+				pst.setString(7, address);
+				pst.setString(8, gender);
 				return pst.executeUpdate() > 0;
 			}
 		} catch (Exception e) {

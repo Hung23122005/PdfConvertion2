@@ -9,6 +9,16 @@
 <title>View list convert</title>
 <link rel="stylesheet" href="./css/common.css" />
 <link rel="stylesheet" href="./css/convertion/convertion.css" />
+<style>
+    .list-convert {
+        background: #0f0f0f;
+        min-height: 100vh;
+    }
+    .header-text {
+        color: #ffffff !important;
+        margin: 20px 0;
+    }
+</style>
 </head>
 <body>
 
@@ -48,7 +58,7 @@
             <td class="text-center">
               <a href="download?file=<%= upload.getFileNameOutputInServer() %>"
                  target="_blank"
-                 style="color:#fa4f0b; font-weight:bold;">
+                 style="color:#ff6b35; font-weight:bold;">
                 <%= upload.getFileNameOutput() %>
               </a>
             </td>
@@ -60,7 +70,7 @@
         </tbody>
       </table>
       <% } else { %>
-      <h3 style="text-align:center; margin-top:50px; color:#666;">
+      <h3 style="text-align:center; margin-top:50px; color:#b0b0b0;">
         You haven't converted any files yet.
       </h3>
       <% } %>

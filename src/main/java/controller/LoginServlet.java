@@ -74,7 +74,15 @@ public class LoginServlet extends HttpServlet {
     private void signUp(HttpServletRequest request, HttpServletResponse response,
             String username, String password) throws IOException, ServletException {
 
-		boolean status = new LoginBO().createAccount(username, password);
+		// Lấy các trường mới từ form
+		String email = request.getParameter("email");
+		String fullName = request.getParameter("fullName");
+		String phone = request.getParameter("phone");
+		String dateOfBirth = request.getParameter("dateOfBirth");
+		String address = request.getParameter("address");
+		String gender = request.getParameter("gender");
+
+		boolean status = new LoginBO().createAccount(username, password, email, fullName, phone, dateOfBirth, address, gender);
 		request.getSession().setAttribute("signup-status", status);
 		if (status) {
 	        request.getSession().setAttribute("login-status", false);

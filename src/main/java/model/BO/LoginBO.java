@@ -8,7 +8,8 @@ public class LoginBO {
 		return (new LoginDAO()).checkLogin(username, password);
 	}
 
-	public boolean createAccount(String username, String password) {
-		return (new LoginDAO()).createAccount(username, password);
+	public boolean createAccount(String username, String password, String email, String fullName, 
+								  String phone, String dateOfBirth, String address, String gender) {
+		return (new LoginDAO()).createAccount(username, password, email, fullName, phone, dateOfBirth, address, gender);
 	}
 }

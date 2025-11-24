@@ -144,13 +144,20 @@ async function showPdfPreview(file) {
 
         totalPages = pdfDoc.numPages;
         currentPage = 1;
-
+		document.getElementById("pdfConvertBtn").style.display = "inline-block";
         await renderPage(1);
 
-    } catch (err) {
-        console.error(err);
-        container.innerHTML = "Lỗi tải PDF.";
-    }
+		} catch (err) {
+		    console.error(err);
+		    container.innerHTML = "<div style='padding:40px;text-align:center;color:red;'>Lỗi tải PDF.</div>";
+
+		    // 🔥 ẨN NÚT "Chuyển đổi sang Word" khi file không phải PDF hoặc PDF lỗi
+			document.getElementById("pdfConvertBtn").style.setProperty("display", "none", "important");
+
+
+		    return;
+		}
+
 }
 
 async function renderPage(pageNum) {

@@ -21,6 +21,13 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
+        // ====== CHỈ THÊM UTF-8, KHÔNG ĐỤNG CODE KHÁC ======
+        request.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("text/html; charset=UTF-8");
+        // ==================================================
+
         String action = request.getParameter("action");
 
         if (action == null) return;
@@ -53,6 +60,13 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
+        // ====== CHỈ THÊM UTF-8, KHÔNG ĐỤNG CODE KHÁC ======
+        request.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("text/html; charset=UTF-8");
+        // ==================================================
+
         doGet(request, response);
     }
 
@@ -74,22 +88,21 @@ public class LoginServlet extends HttpServlet {
     private void signUp(HttpServletRequest request, HttpServletResponse response,
             String username, String password) throws IOException, ServletException {
 
-		// Lấy các trường mới từ form
-		String email = request.getParameter("email");
-		String fullName = request.getParameter("fullName");
-		String phone = request.getParameter("phone");
-		String dateOfBirth = request.getParameter("dateOfBirth");
-		String address = request.getParameter("address");
-		String gender = request.getParameter("gender");
+        // Lấy các trường mới từ form
+        String email = request.getParameter("email");
+        String fullName = request.getParameter("fullName");
+        String phone = request.getParameter("phone");
+        String dateOfBirth = request.getParameter("dateOfBirth");
+        String address = request.getParameter("address");
+        String gender = request.getParameter("gender");
 
-		boolean status = new LoginBO().createAccount(username, password, email, fullName, phone, dateOfBirth, address, gender);
-		request.getSession().setAttribute("signup-status", status);
-		if (status) {
-	        request.getSession().setAttribute("login-status", false);
-	    }
-		Utils.redirectToPage(request, response, "/index.jsp");
-	}
-
+        boolean status = new LoginBO().createAccount(username, password, email, fullName, phone, dateOfBirth, address, gender);
+        request.getSession().setAttribute("signup-status", status);
+        if (status) {
+            request.getSession().setAttribute("login-status", false);
+        }
+        Utils.redirectToPage(request, response, "/index.jsp");
+    }
 
     private void logout(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {

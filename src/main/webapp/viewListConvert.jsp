@@ -1,4 +1,4 @@
-<%@page import="model.BEAN.Upload"%>
+<%@page import="model.BEAN.File"%>
 <%@page import="java.util.ArrayList"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 
@@ -50,7 +50,7 @@
 
   <%
   @SuppressWarnings("unchecked")
-  ArrayList<Upload> uploads = (ArrayList<Upload>) session.getAttribute("uploads");
+  ArrayList<File> uploads = (ArrayList<File>) session.getAttribute("uploads");
   %>
 
   <div class="content-downloader list-convert">
@@ -73,7 +73,7 @@
         <tbody>
           <% 
           int i = 1;
-          for (Upload upload : uploads) { 
+          for (File upload : uploads) { 
           %>
           <tr class="active-row">
             <td class="text-center"><%= i %></td>

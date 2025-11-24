@@ -20,6 +20,6 @@ public class DownloadServlet extends HttpServlet {
         resp.setHeader("Content-Disposition", "attachment; filename=\"" + file.substring(file.indexOf("_") + 1) + "\"");
 
         Files.copy(Paths.get(path), resp.getOutputStream());
-        f.delete();
+        
     }
 }

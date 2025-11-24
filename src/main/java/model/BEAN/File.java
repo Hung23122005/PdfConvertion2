@@ -1,12 +1,12 @@
 package model.BEAN;
 
-public class Upload {
+public class File {
 	private String fileNameUpload;
 	private String fileNameOutput;
 	private String fileNameOutputInServer;
 	private String date;
 
-	public Upload(String fileNameUpload, String fileNameOutput, String fileNameOutputInServer, String date) {
+	public File(String fileNameUpload, String fileNameOutput, String fileNameOutputInServer, String date) {
 		this.fileNameUpload = fileNameUpload;
 		this.fileNameOutput = fileNameOutput;
 		this.fileNameOutputInServer = fileNameOutputInServer;

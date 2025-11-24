@@ -16,7 +16,7 @@ session.removeAttribute("password-error");
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Profile - PDF Converter</title>
+<title>Hồ sơ cá nhân - PDF Converter</title>
 <link rel="stylesheet" href="./css/common.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -43,6 +43,18 @@ session.removeAttribute("password-error");
   .alert-success { background: rgba(46, 204, 113, 0.15); border: 1px solid rgba(46, 204, 113, 0.3); color: #2ecc71; }
   .alert-error { background: rgba(231, 76, 60, 0.15); border: 1px solid rgba(231, 76, 60, 0.3); color: #e74c3c; }
   .row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  /* Nền đen cho ô chọn + menu xổ xuống */
+	.form-group select {
+	    background-color: #1a1a1a;
+	    color: #ffffff;
+	}
+	
+	/* Nền đen cho từng option trong dropdown */
+	.form-group select option {
+	    background-color: #1a1a1a;
+	    color: #ffffff;
+	}
+	  
   @media (max-width: 768px) { .row { grid-template-columns: 1fr; } .page-title { font-size: 32px; } .card { padding: 30px 20px; } }
 </style>
 </head>
@@ -50,11 +62,11 @@ session.removeAttribute("password-error");
   <%@include file="header.jsp"%>
 
   <div class="container">
-    <a href="index.jsp" class="btn-back" style="text-decoration: none; display: inline-block; margin-bottom: 30px;">← Back to Home</a>
-    <h1 class="page-title">👤 My Profile</h1>
+    <a href="index.jsp" class="btn-back" style="text-decoration: none; display: inline-block; margin-bottom: 30px;">← Quay lại trang chủ</a>
+    <h1 class="page-title">👤 Hồ sơ của tôi</h1>
 
     <div class="card">
-      <h2 class="card-title">Personal Information</h2>
+      <h2 class="card-title">Thông tin cá nhân</h2>
       
       <% if (success != null && success) { %>
       <div class="alert alert-success">✓ <%= message %></div>
@@ -64,7 +76,7 @@ session.removeAttribute("password-error");
 
       <form method="post" action="profile" id="profileForm">
         <div class="form-group">
-          <label>Username</label>
+          <label>Tên đăng nhập</label>
           <input type="text" value="<%= user != null ? user.getUsername() : "" %>" disabled>
         </div>
 
@@ -74,45 +86,45 @@ session.removeAttribute("password-error");
             <input type="email" name="email" id="email" value="<%= user != null && user.getEmail() != null ? user.getEmail() : "" %>" required disabled>
           </div>
           <div class="form-group">
-            <label>Full Name</label>
+            <label>Họ và tên</label>
             <input type="text" name="fullName" id="fullName" value="<%= user != null && user.getFullName() != null ? user.getFullName() : "" %>" disabled>
           </div>
         </div>
 
         <div class="row">
           <div class="form-group">
-            <label>Phone</label>
+            <label>Số điện thoại</label>
             <input type="text" name="phone" id="phone" value="<%= user != null && user.getPhone() != null ? user.getPhone() : "" %>" disabled>
           </div>
           <div class="form-group">
-            <label>Date of Birth</label>
+            <label>Ngày sinh</label>
             <input type="date" name="dateOfBirth" id="dateOfBirth" value="<%= user != null && user.getDateOfBirth() != null ? user.getDateOfBirth() : "" %>" disabled>
           </div>
         </div>
 
         <div class="form-group">
-          <label>Address</label>
+          <label>Địa chỉ</label>
           <input type="text" name="address" id="address" value="<%= user != null && user.getAddress() != null ? user.getAddress() : "" %>" disabled>
         </div>
 
         <div class="form-group">
-          <label>Gender</label>
+          <label>Giới tính</label>
           <select name="gender" id="gender" disabled>
-            <option value="">-- Select Gender --</option>
-            <option value="Male" <%= user != null && "Male".equals(user.getGender()) ? "selected" : "" %>>Male</option>
-            <option value="Female" <%= user != null && "Female".equals(user.getGender()) ? "selected" : "" %>>Female</option>
-            <option value="Other" <%= user != null && "Other".equals(user.getGender()) ? "selected" : "" %>>Other</option>
+            <option value="">-- Chọn giới tính --</option>
+            <option value="Nam"  <%= user != null && "Nam".equals(user.getGender()) ? "selected" : "" %>>Nam</option>
+            <option value="Nữ"   <%= user != null && "Nữ".equals(user.getGender()) ? "selected" : "" %>>Nữ</option>
+            <option value="Khác" <%= user != null && "Khác".equals(user.getGender()) ? "selected" : "" %>>Khác</option>
           </select>
         </div>
 
-        <button type="button" class="btn btn-primary" id="editBtn" onclick="enableEdit()">✏️ Edit Information</button>
-        <button type="submit" class="btn btn-primary" id="updateBtn" style="display: none;">💾 Update Profile</button>
-        <button type="button" class="btn btn-secondary" id="cancelBtn" style="display: none;" onclick="cancelEdit()">✖️ Cancel</button>
+        <button type="button" class="btn btn-primary" id="editBtn" onclick="enableEdit()">✏️ Chỉnh sửa thông tin</button>
+        <button type="submit" class="btn btn-primary" id="updateBtn" style="display: none;">💾 Cập nhật hồ sơ</button>
+        <button type="button" class="btn btn-secondary" id="cancelBtn" style="display: none;" onclick="cancelEdit()">✖️ Hủy</button>
       </form>
     </div>
 
     <div class="card">
-      <h2 class="card-title">Change Password</h2>
+      <h2 class="card-title">Đổi mật khẩu</h2>
 
       <% if (passwordSuccess != null) { %>
       <div class="alert alert-success">✓ <%= passwordSuccess %></div>
@@ -122,22 +134,22 @@ session.removeAttribute("password-error");
 
       <form method="post" action="changePassword">
         <div class="form-group">
-          <label>Current Password *</label>
+          <label>Mật khẩu hiện tại *</label>
           <input type="password" name="oldPassword" required>
         </div>
 
         <div class="row">
           <div class="form-group">
-            <label>New Password *</label>
+            <label>Mật khẩu mới *</label>
             <input type="password" name="newPassword" required>
           </div>
           <div class="form-group">
-            <label>Confirm New Password *</label>
+            <label>Xác nhận mật khẩu mới *</label>
             <input type="password" name="confirmPassword" required>
           </div>
         </div>
 
-        <button type="submit" class="btn btn-primary">🔐 Change Password</button>
+        <button type="submit" class="btn btn-primary">🔐 Đổi mật khẩu</button>
       </form>
     </div>
   </div>

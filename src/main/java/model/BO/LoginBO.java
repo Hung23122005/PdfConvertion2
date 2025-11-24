@@ -12,4 +12,20 @@ public class LoginBO {
 								  String phone, String dateOfBirth, String address, String gender) {
 		return (new LoginDAO()).createAccount(username, password, email, fullName, phone, dateOfBirth, address, gender);
 	}
+
+	public User getUserInfo(String username) {
+		return (new LoginDAO()).getUserByUsername(username);
+	}
+
+	public boolean updateProfile(User user) {
+		return (new LoginDAO()).updateUserProfile(user);
+	}
+
+	public boolean changePassword(String username, String oldPassword, String newPassword) {
+		User user = checkLogin(username, oldPassword);
+		if (user != null) {
+			return (new LoginDAO()).updatePassword(username, newPassword);
+		}
+		return false;
+	}
 }

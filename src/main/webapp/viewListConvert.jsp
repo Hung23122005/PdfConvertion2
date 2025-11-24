@@ -11,18 +11,25 @@
 <link rel="stylesheet" href="./css/convertion/convertion.css" />
 <style>
     .list-convert {
-        background: #0f0f0f;
+        background: #1a1a1a;
         min-height: 100vh;
+        color: #ffffff;
     }
     .header-text {
         color: #ffffff !important;
         margin: 20px 0;
     }
+    .styled-table tbody td {
+        color: #ffffff !important;
+    }
+    .styled-table tbody a {
+        color: #ff6b35 !important;
+        font-weight: bold;
+    }
 </style>
 </head>
 <body>
 
-  <!-- Header sẽ tự lấy session, không cần khai báo biến ở đây nữa -->
   <%@include file="header.jsp"%>
 
   <%
@@ -57,8 +64,7 @@
             <td class="text-center"><%= upload.getFileNameUpload() %></td>
             <td class="text-center">
               <a href="download?file=<%= upload.getFileNameOutputInServer() %>"
-                 target="_blank"
-                 style="color:#ff6b35; font-weight:bold;">
+                 target="_blank">
                 <%= upload.getFileNameOutput() %>
               </a>
             </td>
@@ -70,7 +76,7 @@
         </tbody>
       </table>
       <% } else { %>
-      <h3 style="text-align:center; margin-top:50px; color:#b0b0b0;">
+      <h3 style="text-align:center; margin-top:50px; color:#ffffff;">
         You haven't converted any files yet.
       </h3>
       <% } %>

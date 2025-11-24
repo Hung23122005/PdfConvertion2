@@ -56,4 +56,72 @@ public class LoginDAO {
 		}
 		return false;
 	}
+
+	public User getUserByUsername(String username) {
+		User user = null;
+		try {
+			Connection connection = Utils.getConnection();
+			if (connection != null) {
+				String query = "SELECT * FROM users WHERE username = ?";
+				PreparedStatement pst = connection.prepareStatement(query);
+				pst.setString(1, username);
+				ResultSet rs = pst.executeQuery();
+				if (rs.next()) {
+					user = new User();
+					user.setUsername(rs.getString("username"));
+					user.setPassword(rs.getString("password"));
+					user.setEmail(rs.getString("email"));
+					user.setFullName(rs.getString("full_name"));
+					user.setPhone(rs.getString("phone"));
+					user.setDateOfBirth(rs.getString("date_of_birth"));
+					user.setAddress(rs.getString("address"));
+					user.setGender(rs.getString("gender"));
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("getUserByUsername: " + e.getMessage());
+		}
+		return user;
+	}
+
+	public boolean updateUserProfile(User user) {
+		try {
+			Connection connection = Utils.getConnection();
+			if (connection != null) {
+				String query = "UPDATE users SET email=?, full_name=?, phone=?, date_of_birth=?, address=?, gender=? WHERE username=?";
+				PreparedStatement pst = connection.prepareStatement(query);
+				pst.setString(1, user.getEmail());
+				pst.setString(2, user.getFullName());
+				pst.setString(3, user.getPhone());
+				if (user.getDateOfBirth() != null && !user.getDateOfBirth().trim().isEmpty()) {
+					pst.setString(4, user.getDateOfBirth());
+				} else {
+					pst.setNull(4, java.sql.Types.DATE);
+				}
+				pst.setString(5, user.getAddress());
+				pst.setString(6, user.getGender());
+				pst.setString(7, user.getUsername());
+				return pst.executeUpdate() > 0;
+			}
+		} catch (Exception e) {
+			System.err.println("updateUserProfile: " + e.getMessage());
+		}
+		return false;
+	}
+
+	public boolean updatePassword(String username, String newPassword) {
+		try {
+			Connection connection = Utils.getConnection();
+			if (connection != null) {
+				String query = "UPDATE users SET password=? WHERE username=?";
+				PreparedStatement pst = connection.prepareStatement(query);
+				pst.setString(1, newPassword);
+				pst.setString(2, username);
+				return pst.executeUpdate() > 0;
+			}
+		} catch (Exception e) {
+			System.err.println("updatePassword: " + e.getMessage());
+		}
+		return false;
+	}
 }

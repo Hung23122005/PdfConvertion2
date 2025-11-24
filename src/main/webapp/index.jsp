@@ -117,7 +117,14 @@ Boolean signUpStatus = (Boolean) session.getAttribute("signup-status");
 
   .btn-secondary:hover { background: rgba(255, 255, 255, 0.1); transform: translateY(-2px); }
 
-  .content { position: relative; z-index: 5; padding: 15px 20px; text-align: center; }
+  .content { 
+    position: relative; 
+    z-index: 5; 
+    padding: 20px 20px; 
+    text-align: center; 
+    background: transparent;
+    min-height: auto;
+  }
 
   .features-section { padding: 80px 20px; max-width: 1200px; margin: 0 auto; }
 

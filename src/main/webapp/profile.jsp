@@ -37,6 +37,8 @@ session.removeAttribute("password-error");
   .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 15px 40px rgba(255, 107, 53, 0.6); }
   .btn-secondary { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: white; margin-left: 10px; }
   .btn-secondary:hover { background: rgba(255, 255, 255, 0.1); }
+  .btn-back { padding: 10px 20px; background: linear-gradient(135deg, #00d4ff, #0099cc); color: white; border-radius: 8px; display: inline-block; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3); }
+  .btn-back:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 212, 255, 0.5); }
   .alert { padding: 15px 20px; border-radius: 10px; margin-bottom: 25px; font-size: 14px; }
   .alert-success { background: rgba(46, 204, 113, 0.15); border: 1px solid rgba(46, 204, 113, 0.3); color: #2ecc71; }
   .alert-error { background: rgba(231, 76, 60, 0.15); border: 1px solid rgba(231, 76, 60, 0.3); color: #e74c3c; }
@@ -48,6 +50,7 @@ session.removeAttribute("password-error");
   <%@include file="header.jsp"%>
 
   <div class="container">
+    <a href="index.jsp" class="btn-back" style="text-decoration: none; display: inline-block; margin-bottom: 30px;">← Back to Home</a>
     <h1 class="page-title">👤 My Profile</h1>
 
     <div class="card">

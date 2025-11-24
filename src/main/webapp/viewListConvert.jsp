@@ -15,9 +15,25 @@
         min-height: 100vh;
         color: #ffffff;
     }
+    .content-downloader {
+        padding-top: 80px;
+    }
+    .header-content {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: 30px;
+        padding: 20px 0;
+    }
     .header-text {
         color: #ffffff !important;
         margin: 20px 0;
+        width: 100%;
+        text-align: center;
+    }
+    .btn-back {
+        text-decoration: none;
+        margin-bottom: 15px;
     }
     .styled-table tbody td {
         color: #ffffff !important;

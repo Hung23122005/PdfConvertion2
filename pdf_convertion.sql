@@ -2,10 +2,10 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Dec 12, 2023 at 06:07 AM
--- Server version: 10.4.28-MariaDB
--- PHP Version: 8.2.4
+-- Máy chủ: 127.0.0.1
+-- Thời gian đã tạo: Th10 24, 2025 lúc 09:10 AM
+-- Phiên bản máy phục vụ: 10.4.32-MariaDB
+-- Phiên bản PHP: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,16 +18,16 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `pdf_convertion`
+-- Cơ sở dữ liệu: `pdf_convertion`
 --
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `uploads`
+-- Cấu trúc bảng cho bảng `files`
 --
 
-CREATE TABLE `uploads` (
+CREATE TABLE `files` (
   `id` int(11) NOT NULL,
   `username` varchar(50) NOT NULL,
   `fileNameUpload` varchar(255) NOT NULL,
@@ -36,67 +36,69 @@ CREATE TABLE `uploads` (
   `date` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+
 -- --------------------------------------------------------
 
 --
--- Table structure for table `users`
+-- Cấu trúc bảng cho bảng `users`
 --
 
 CREATE TABLE `users` (
   `username` varchar(50) NOT NULL,
-  `password` varchar(100) NOT NULL
+  `password` varchar(100) NOT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `full_name` varchar(100) DEFAULT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `date_of_birth` date DEFAULT NULL,
+  `address` text DEFAULT NULL,
+  `gender` enum('Nam','Nữ','Khác') DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `users`
+-- Đang đổ dữ liệu cho bảng `users`
 --
 
-INSERT INTO `users` (`username`, `password`) VALUES
-('admin', 'admin'),
-('admin02', 'admin02'),
-('admin03', 'abc'),
-('admin04', 'abc'),
-('admin05', 'abc'),
-('admin06', 'abc'),
-('admin07', 'abc'),
-('admin_test', 'abc');
+INSERT INTO `users` (`username`, `password`, `email`, `full_name`, `phone`, `date_of_birth`, `address`, `gender`) VALUES
+('admin', 'admin', 'hoang@gmail.com', 'Nguyễn Hữu Nhật Hoàng', '0388182811', '2005-12-06', 'Ngô sĩ liên', 'Nam'),
+('hoang', '04012005', 'hung123@gmail.com', 'Quốc Hùng', '0582811821', '2004-12-07', 'Ngô sĩ liên', 'Nam');
 
 --
--- Indexes for dumped tables
+-- Chỉ mục cho các bảng đã đổ
 --
 
 --
--- Indexes for table `uploads`
+-- Chỉ mục cho bảng `files`
 --
-ALTER TABLE `uploads`
+ALTER TABLE `files`
   ADD PRIMARY KEY (`id`),
   ADD KEY `username` (`username`);
 
 --
--- Indexes for table `users`
+-- Chỉ mục cho bảng `users`
 --
 ALTER TABLE `users`
-  ADD PRIMARY KEY (`username`);
+  ADD PRIMARY KEY (`username`),
+  ADD UNIQUE KEY `email` (`email`);
 
 --
--- AUTO_INCREMENT for dumped tables
---
-
---
--- AUTO_INCREMENT for table `uploads`
---
-ALTER TABLE `uploads`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
-
---
--- Constraints for dumped tables
+-- AUTO_INCREMENT cho các bảng đã đổ
 --
 
 --
--- Constraints for table `uploads`
+-- AUTO_INCREMENT cho bảng `files`
 --
-ALTER TABLE `uploads`
-  ADD CONSTRAINT `uploads_ibfk_1` FOREIGN KEY (`username`) REFERENCES `users` (`username`);
+ALTER TABLE `files`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=107;
+
+--
+-- Các ràng buộc cho các bảng đã đổ
+--
+
+--
+-- Các ràng buộc cho bảng `files`
+--
+ALTER TABLE `files`
+  ADD CONSTRAINT `files_ibfk_1` FOREIGN KEY (`username`) REFERENCES `users` (`username`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

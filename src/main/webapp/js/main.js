@@ -1,7 +1,7 @@
-let worker = null;
-
-// ===== NEW FEATURE: Smooth progress =====
-let smoothProgress = 0;
+const workers = new Map();
+const pollers = new Map();
+const taskMetadata = new Map();
+const ACTIVE_TASKS_KEY = "multiConvertTasks";
 
 // ===== MAIN FEATURE: PDF Preview =====
 let pdfDoc = null;
@@ -10,6 +10,43 @@ let totalPages = 0;
 let currentFile = null;
 let pdfjsLib = null;
 
+// ==================================
+// 📁 Persist danh sách task
+// ==================================
+function restoreTasksFromSession() {
+    try {
+        const raw = sessionStorage.getItem(ACTIVE_TASKS_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+            parsed.forEach(item => {
+                if (item && item.taskId && item.fileName) {
+                    taskMetadata.set(item.taskId, item.fileName);
+                }
+            });
+        }
+    } catch (err) {
+        console.warn("Không đọc được danh sách task từ sessionStorage", err);
+    }
+}
+
+function persistTasksToSession() {
+    const data = Array.from(taskMetadata.entries()).map(([taskId, fileName]) => ({
+        taskId,
+        fileName
+    }));
+    sessionStorage.setItem(ACTIVE_TASKS_KEY, JSON.stringify(data));
+}
+
+function registerTask(taskId, fileName) {
+    taskMetadata.set(taskId, fileName);
+    persistTasksToSession();
+}
+
+function unregisterTask(taskId) {
+    taskMetadata.delete(taskId);
+    persistTasksToSession();
+}
 
 // ==================================
 // 🔥 Load PDF.js
@@ -38,19 +75,33 @@ async function loadPdfJs() {
     }
 }
 
+function createTaskId() {
+    if (window.crypto && window.crypto.randomUUID) {
+        return "task_" + window.crypto.randomUUID();
+    }
+    return "task_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+}
+
+function isPdfFile(file) {
+    if (!file) return false;
+    if (file.type) {
+        return file.type === "application/pdf";
+    }
+    return file.name && file.name.toLowerCase().endsWith(".pdf");
+}
+
 
 
 // ==================================
 // ⏳ Khi trang load – kiểm tra resume task
 // ==================================
 document.addEventListener("DOMContentLoaded", function () {
+    restoreTasksFromSession();
 
-    const resumeTaskId = sessionStorage.getItem("activeTaskId");
-    if (resumeTaskId) {
-        console.log("🔄 Resume task:", resumeTaskId);
-        showProgress("Đang tiếp tục chuyển đổi...");
-        startPolling(resumeTaskId);
-    }
+    taskMetadata.forEach((fileName, taskId) => {
+        showProgress(taskId, fileName, true);
+        startPolling(taskId);
+    });
 
     setupPreviewModal();
 
@@ -63,13 +114,30 @@ document.addEventListener("DOMContentLoaded", function () {
         const input = document.createElement("input");
         input.type = "file";
         input.accept = ".pdf";
+        input.multiple = true;
 
         input.onchange = async function () {
-            const file = this.files[0];
-            if (!file) return;
+            const files = Array.from(this.files || []);
+            if (!files.length) return;
 
-            currentFile = file;   // Giữ file để convert sau
-            await showPdfPreview(file); // Hiện preview PDF
+            if (files.length === 1) {
+                const file = files[0];
+                if (!isPdfFile(file)) {
+                    alert("Vui lòng chọn đúng file PDF.");
+                    return;
+                }
+                currentFile = file;
+                await showPdfPreview(file);
+                return;
+            }
+
+            files.forEach(file => {
+                if (isPdfFile(file)) {
+                    startConvert(file);
+                } else {
+                    alert(`"${file.name}" không phải tệp PDF hợp lệ.`);
+                }
+            });
         };
 
         input.click();
@@ -199,32 +267,49 @@ function closePdfPreview() {
 // ==================================
 // 🚀 BẮT ĐẦU UPLOAD + CONVERT = GỘP
 // ==================================
+function cleanupWorker(taskId) {
+    const worker = workers.get(taskId);
+    if (worker) {
+        worker.terminate();
+        workers.delete(taskId);
+    }
+}
+
+function stopPolling(taskId) {
+    const interval = pollers.get(taskId);
+    if (interval) {
+        clearInterval(interval);
+        pollers.delete(taskId);
+    }
+}
+
 function startConvert(file) {
-    const taskId = "task_" + Date.now();
+    const taskId = createTaskId();
 
-    showProgress(file.name);
+    registerTask(taskId, file.name);
+    showProgress(taskId, file.name);
+    updateMessage(taskId, "Đang tải lên...");
+    updateProgress(taskId, 1);
 
-    if (worker) worker.terminate();
-
-    worker = new Worker(contextPath + "/js/uploadWorker.js");
+    const worker = new Worker(contextPath + "/js/uploadWorker.js");
+    workers.set(taskId, worker);
 
     worker.onmessage = function (e) {
-
         if (e.data.type === "progress") {
-            updateProgress(e.data.percent);
-
+            updateProgress(taskId, e.data.percent);
         } else if (e.data.type === "uploaded") {
-
-            updateMessage("Upload xong! Đang chuyển đổi...");
-
-            sessionStorage.setItem("activeTaskId", taskId);
-
+            cleanupWorker(taskId);
+            updateMessage(taskId, "Upload xong! Đang chuyển đổi...");
             startPolling(taskId);
-
         } else if (e.data.type === "error") {
-            alert("Lỗi upload: " + e.data.message);
-            hideProgress();
+            cleanupWorker(taskId);
+            updateMessage(taskId, "Lỗi upload: " + (e.data.message || ""));
         }
+    };
+
+    worker.onerror = function (err) {
+        cleanupWorker(taskId);
+        updateMessage(taskId, "Có lỗi khi upload: " + err.message);
     };
 
     worker.postMessage({
@@ -232,79 +317,100 @@ function startConvert(file) {
         taskId: taskId,
         contextPath: contextPath
     });
+
+    return taskId;
 }
 
 
 
 // ==================================
-// UI PROGRESS – GỘP MỚI + CŨ
+// UI PROGRESS – HỖ TRỢ NHIỀU TASK
 // ==================================
-function showProgress(fileName) {
-    let box = document.getElementById("progressContainer");
-
-    if (!box) {
-        box = document.createElement("div");
-        box.id = "progressContainer";
-
-        box.innerHTML = `
-            <div style="margin:50px auto; max-width:700px; padding:25px; background:#fff; border-radius:12px; text-align:center; color:#333 !important;">
-                <p style="color:#333 !important;"><strong>Đang chuyển đổi:</strong> <span id="progFileName">${fileName}</span></p>
-                <div style="width:100%; height:40px; background:#eee; border-radius:10px; overflow:hidden;">
-                    <div id="progBar"
-                         style="width:0%; height:100%; background:#fa4f0b; line-height:40px; color:white; font-weight:bold;">0%</div>
-                </div>
-                <p id="progMsg" style="margin-top:10px; color:#333 !important;">Đang chuẩn bị...</p>
-            </div>
-        `;
-
-        document.querySelector(".content").appendChild(box);
-    }
-
-    smoothProgress = 0;
-    updateProgress(0);
-}
-
-function updateProgress(targetPercent) {
-    if (targetPercent < smoothProgress) {
-        targetPercent = smoothProgress;
-    }
-
-    const bar = document.getElementById("progBar");
-    if (!bar) return;
-
-    const step = () => {
-        if (smoothProgress < targetPercent) {
-            smoothProgress++;
-            bar.style.width = smoothProgress + "%";
-            bar.textContent = smoothProgress + "%";
-            requestAnimationFrame(step);
+function ensureProgressList() {
+    let list = document.getElementById("progressList");
+    if (!list) {
+        list = document.createElement("div");
+        list.id = "progressList";
+        list.className = "progress-list";
+        const container = document.querySelector(".content");
+        if (container) {
+            container.appendChild(list);
         }
-    };
-
-    requestAnimationFrame(step);
+    }
+    return list;
 }
 
-function updateMessage(msg) {
-    const el = document.getElementById("progMsg");
-    if (el) el.innerHTML = msg;
+function buildProgressCard(taskId, fileName) {
+    const card = document.createElement("div");
+    card.className = "progress-card";
+    card.id = `progress-${taskId}`;
+    card.innerHTML = `
+        <h4 id="progFileName-${taskId}"></h4>
+        <div class="progress-bar-shell">
+            <div class="progress-bar-fill" id="progBar-${taskId}">0%</div>
+        </div>
+        <p class="progress-message" id="progMsg-${taskId}">Đang chuẩn bị...</p>
+    `;
+    const title = card.querySelector(`#progFileName-${taskId}`);
+    if (title) {
+        title.textContent = fileName;
+    }
+    return card;
 }
 
-function updateStatus(state, msg, part, total) {
-    const el = document.getElementById("progMsg");
-    if (!el) return;
+function showProgress(taskId, fileName, isResume = false) {
+    const list = ensureProgressList();
+    if (!list) return;
 
-    if (state === "queued") el.innerHTML = "Đang xếp hàng xử lý...";
-    else if (state === "splitting_pdf") el.innerHTML = "Đang tách PDF...";
-    else if (state.startsWith("converting_part_"))
-        el.innerHTML = `Đang xử lý phần ${part}/${total}...`;
-    else if (state === "merging") el.innerHTML = "Đang gộp file...";
-    else if (state === "saving_to_db") el.innerHTML = "Đang lưu dữ liệu...";
-    else el.innerHTML = msg;
+    let card = document.getElementById(`progress-${taskId}`);
+    if (!card) {
+        card = buildProgressCard(taskId, fileName);
+        list.appendChild(card);
+    } else {
+        const title = document.getElementById(`progFileName-${taskId}`);
+        if (title) title.textContent = fileName;
+    }
+
+    updateProgress(taskId, isResume ? 5 : 0);
+    updateMessage(taskId, isResume ? "Đang kiểm tra trạng thái..." : "Đang chuẩn bị...");
 }
 
-function hideProgress() {
-    const box = document.getElementById("progressContainer");
-    if (box) box.style.display = "none";
+function updateProgress(taskId, percent) {
+    const bar = document.getElementById(`progBar-${taskId}`);
+    if (!bar) return;
+    const safePercent = Math.max(0, Math.min(100, Math.round(percent || 0)));
+    bar.style.width = safePercent + "%";
+    bar.textContent = safePercent + "%";
+}
+
+function updateMessage(taskId, msg) {
+    const el = document.getElementById(`progMsg-${taskId}`);
+    if (el) el.innerHTML = msg || "";
+}
+
+function updateStatus(taskId, state, msg, part, total) {
+    if (state === "queued") {
+        updateMessage(taskId, "Đang xếp hàng xử lý...");
+    } else if (state === "splitting_pdf") {
+        updateMessage(taskId, "Đang tách PDF...");
+    } else if (state && state.startsWith("converting_part_")) {
+        updateMessage(taskId, `Đang xử lý phần ${part}/${total}...`);
+    } else if (state === "merging") {
+        updateMessage(taskId, "Đang gộp file...");
+    } else if (state === "saving_to_db") {
+        updateMessage(taskId, "Đang lưu dữ liệu...");
+    } else if (state === "error") {
+        updateMessage(taskId, msg || "Đã xảy ra lỗi.");
+    } else {
+        updateMessage(taskId, msg || "Đang xử lý...");
+    }
+}
+
+function hideProgress(taskId) {
+    const card = document.getElementById(`progress-${taskId}`);
+    if (card) {
+        card.remove();
+    }
 }
 
 
@@ -313,41 +419,55 @@ function hideProgress() {
 // 🔄 POLLING = FULL NEW VERSION
 // ==================================
 function startPolling(taskId) {
-    const interval = setInterval(() => {
+    if (pollers.has(taskId)) return;
 
+    const interval = setInterval(() => {
         fetch(contextPath + "/status?taskId=" + encodeURIComponent(taskId) + "&_=" + Date.now())
             .then(r => r.json())
             .then(data => {
+                if (!data) return;
 
                 if (typeof data.progress === "number") {
-                    updateProgress(data.progress);
+                    updateProgress(taskId, data.progress);
+                }
+
+                if (data.status === "notfound") {
+                    stopPolling(taskId);
+                    unregisterTask(taskId);
+                    updateMessage(taskId, "Task không còn tồn tại hoặc đã hết hạn.");
+                    return;
                 }
 
                 if (data.status) {
-                    updateStatus(data.status, data.message, data.currentPart, data.totalPart);
+                    updateStatus(taskId, data.status, data.message, data.currentPart, data.totalPart);
                 }
 
                 if (data.status === "done" && data.file) {
-                    clearInterval(interval);
-                    updateProgress(100);
-
-                    sessionStorage.removeItem("activeTaskId");
-
-                    updateMessage(`
+                    stopPolling(taskId);
+                    unregisterTask(taskId);
+                    updateProgress(taskId, 100);
+                    const downloadUrl = `${contextPath}/download?file=${encodeURIComponent(data.file)}`;
+                    updateMessage(taskId, `
                         Hoàn thành! 🎉<br/>
-                        <a href="${contextPath}/download?file=${data.file}"
+                        <a href="${downloadUrl}"
                            style="display:inline-block; margin-top:10px; background:#28a745; color:white; padding:10px 22px; border-radius:8px; font-weight:bold;">
                             Tải file Word
                         </a>
                     `);
+                    return;
                 }
 
                 if (data.status === "error") {
-                    clearInterval(interval);
-                    updateMessage("Có lỗi xảy ra: " + data.message);
+                    stopPolling(taskId);
+                    unregisterTask(taskId);
+                    updateMessage(taskId, "Có lỗi xảy ra: " + (data.message || ""));
                 }
             })
-            .catch(() => {});
+            .catch(() => {
+                updateMessage(taskId, "Mất kết nối tới máy chủ, đang thử lại...");
+            });
 
     }, 1200);
+
+    pollers.set(taskId, interval);
 }

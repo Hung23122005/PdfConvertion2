@@ -1,12 +1,12 @@
 package model.BO;
 
 import java.util.ArrayList;
-import model.BEAN.Upload;
+import model.BEAN.File;
 import model.DAO.ConverterDAO;
 
 public class ConverterBO {
 
-    public ArrayList<Upload> getListFileConvert(String username) {
+    public ArrayList<File> getListFileConvert(String username) {
         return (new ConverterDAO()).getListFileConvert(username);
     }
 

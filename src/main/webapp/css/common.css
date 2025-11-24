@@ -1,23 +1,14 @@
-/* ==================== common.css – SIÊU ĐẸP, SIÊU SẠCH 2025 ==================== */
-
-body {
-    font-family: "Arial", sans-serif;
-    font-size: 14px;
-    margin: 0;
-    background: #f9f9f9;
-}
-
-a { text-decoration: none; }
-
 .header {
-    background: #fff;
+    background: rgba(15, 15, 15, 0.9);
+    backdrop-filter: blur(20px);
     width: 100%;
     height: 70px;
     position: fixed;
     top: 0; left: 0; right: 0;
     z-index: 1041;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 30px rgba(0,0,0,0.5);
     padding: 0 30px;
+    border-bottom: 1px solid rgba(255, 107, 53, 0.2);
 }
 
 .navbar {
@@ -37,42 +28,64 @@ a { text-decoration: none; }
 
 .text-login {
     font-weight: 600;
-    color: #333;
+    color: #ffffff;
     cursor: pointer;
+    transition: all 0.3s;
 }
 
-.text-login:hover { color: #fa4f0b; }
+.text-login:hover { 
+    color: #ff6b35;
+    text-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
+}
 
 .btn {
     padding: 10px 20px;
-    background: #f27b44;
+    background: linear-gradient(135deg, #ff6b35, #f27b44);
     color: white;
     border-radius: 8px;
     font-weight: 600;
     border: none;
     cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
 }
 
-.btn:hover { background: #fa4f0b; }
+.btn:hover { 
+    background: linear-gradient(135deg, #f27b44, #ff6b35);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 107, 53, 0.5);
+}
+
 .btn-signup { margin-left: 10px; }
-.btn-logout { background: #dc3545; }
-.btn-logout:hover { background: #c82333; }
+
+.btn-logout { 
+    background: linear-gradient(135deg, #00d4ff, #0099cc);
+    box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+}
+
+.btn-logout:hover { 
+    background: linear-gradient(135deg, #0099cc, #00d4ff);
+    box-shadow: 0 6px 20px rgba(0, 212, 255, 0.5);
+    transform: translateY(-2px);
+}
 
 .content {
-    margin-top: 100px;
-    padding: 40px 20px;
+    margin-top: 0;
+    padding: 20px 20px;
     text-align: center;
-    min-height: calc(100vh - 100px);
+    min-height: auto;
+    background: transparent;
 }
 
-/* ==================== MODAL HIỆN ĐẠI ==================== */
+/* ==================== MODAL DARK THEME ==================== */
 .modal {
     display: none;
     position: fixed;
     z-index: 9999;
     left: 0; top: 0;
     width: 100%; height: 100%;
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(0,0,0,0.85);
+    backdrop-filter: blur(10px);
     align-items: center;
     justify-content: center;
 }
@@ -80,14 +93,15 @@ a { text-decoration: none; }
 .modal.show { display: flex !important; }
 
 .modal-content {
-    background: white;
+    background: #252525;
     padding: 35px;
-    border-radius: 12px;
+    border-radius: 16px;
     width: 90%;
     max-width: 500px;
     position: relative;
     animation: zoom 0.4s;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+    border: 1px solid #333;
 }
 
 @keyframes zoom {
@@ -101,17 +115,22 @@ a { text-decoration: none; }
     right: 20px;
     font-size: 32px;
     font-weight: bold;
-    color: #aaa;
+    color: #888;
     cursor: pointer;
+    transition: all 0.3s;
 }
 
-.close:hover { color: #000; }
+.close:hover { 
+    color: #ff6b35;
+    transform: rotate(90deg);
+}
 
 .title {
-    color: #73879C;
+    color: #ffffff;
     font-size: 24px;
     margin-bottom: 20px;
     position: relative;
+    text-align: center;
 }
 
 .title:before, .title:after {
@@ -119,20 +138,39 @@ a { text-decoration: none; }
     position: absolute;
     top: 50%;
     width: 20%;
-    height: 1px;
-    background: #ccc;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #ff6b35);
 }
 
-.title:before { left: 0; }
-.title:after { right: 0; }
+.title:before { 
+    left: 0;
+    background: linear-gradient(90deg, transparent, #ff6b35);
+}
+.title:after { 
+    right: 0;
+    background: linear-gradient(270deg, transparent, #ff6b35);
+}
 
 .form-group { margin: 15px 0; }
 .form-group input {
     width: 80%;
     padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
+    border: 1px solid #333;
+    border-radius: 8px;
     font-size: 16px;
+    background: #1a1a1a;
+    color: #ffffff;
+    transition: all 0.3s;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #ff6b35;
+    box-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
+}
+
+.form-group input::placeholder {
+    color: #666;
 }
 
 .btn-group { margin-top: 20px; }
@@ -140,8 +178,9 @@ a { text-decoration: none; }
     padding: 10px 20px;
     margin: 0 10px;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
+    transition: all 0.3s;
 }
 
 /* ==================== PROGRESS BAR + SUCCESS ==================== */
@@ -149,17 +188,17 @@ a { text-decoration: none; }
     margin: 40px auto;
     width: 70%;
     max-width: 700px;
-    background: #eee;
+    background: #1a1a1a;
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
     display: none;
 }
 
 .progress-bar {
     width: 0%;
     height: 50px;
-    background: linear-gradient(90deg, #fa4f0b, #f27b44);
+    background: linear-gradient(90deg, #ff6b35, #f27b44);
     text-align: center;
     line-height: 50px;
     color: white;
@@ -173,9 +212,9 @@ a { text-decoration: none; }
 .success-message {
     margin: 40px auto;
     padding: 25px;
-    background: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
+    background: #1a3a1a;
+    color: #4ade80;
+    border: 1px solid #22c55e;
     border-radius: 12px;
     max-width: 600px;
     font-size: 20px;
@@ -192,6 +231,10 @@ a { text-decoration: none; }
     border-radius: 10px;
     font-weight: bold;
     text-decoration: none;
+    transition: all 0.3s;
 }
 
-.download-btn:hover { background: #218838; }
+.download-btn:hover { 
+    background: #218838;
+    transform: translateY(-2px);
+}

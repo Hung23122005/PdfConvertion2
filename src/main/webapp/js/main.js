@@ -144,13 +144,20 @@ async function showPdfPreview(file) {
 
         totalPages = pdfDoc.numPages;
         currentPage = 1;
-
+		document.getElementById("pdfConvertBtn").style.display = "inline-block";
         await renderPage(1);
 
-    } catch (err) {
-        console.error(err);
-        container.innerHTML = "Lỗi tải PDF.";
-    }
+		} catch (err) {
+		    console.error(err);
+		    container.innerHTML = "<div style='padding:40px;text-align:center;color:red;'>Lỗi tải PDF.</div>";
+
+		    // 🔥 ẨN NÚT "Chuyển đổi sang Word" khi file không phải PDF hoặc PDF lỗi
+			document.getElementById("pdfConvertBtn").style.setProperty("display", "none", "important");
+
+
+		    return;
+		}
+
 }
 
 async function renderPage(pageNum) {
@@ -240,13 +247,13 @@ function showProgress(fileName) {
         box.id = "progressContainer";
 
         box.innerHTML = `
-            <div style="margin:50px auto; max-width:700px; padding:25px; background:#fff; border-radius:12px; text-align:center;">
-                <p><strong>Đang xử lý:</strong> <span id="progFileName">${fileName}</span></p>
+            <div style="margin:50px auto; max-width:700px; padding:25px; background:#fff; border-radius:12px; text-align:center; color:#333 !important;">
+                <p style="color:#333 !important;"><strong>Đang chuyển đổi:</strong> <span id="progFileName">${fileName}</span></p>
                 <div style="width:100%; height:40px; background:#eee; border-radius:10px; overflow:hidden;">
                     <div id="progBar"
                          style="width:0%; height:100%; background:#fa4f0b; line-height:40px; color:white; font-weight:bold;">0%</div>
                 </div>
-                <p id="progMsg" style="margin-top:10px;">Đang chuẩn bị...</p>
+                <p id="progMsg" style="margin-top:10px; color:#333 !important;">Đang chuẩn bị...</p>
             </div>
         `;
 

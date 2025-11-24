@@ -1,4 +1,4 @@
-<%@page import="model.BEAN.Upload"%>
+<%@page import="model.BEAN.File"%>
 <%@page import="java.util.ArrayList"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 
@@ -9,15 +9,48 @@
 <title>View list convert</title>
 <link rel="stylesheet" href="./css/common.css" />
 <link rel="stylesheet" href="./css/convertion/convertion.css" />
+<style>
+    .list-convert {
+        background: #1a1a1a;
+        min-height: 100vh;
+        color: #ffffff;
+    }
+    .content-downloader {
+        padding-top: 80px;
+    }
+    .header-content {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: 30px;
+        padding: 20px 0;
+    }
+    .header-text {
+        color: #ffffff !important;
+        margin: 20px 0;
+        width: 100%;
+        text-align: center;
+    }
+    .btn-back {
+        text-decoration: none;
+        margin-bottom: 15px;
+    }
+    .styled-table tbody td {
+        color: #ffffff !important;
+    }
+    .styled-table tbody a {
+        color: #ff6b35 !important;
+        font-weight: bold;
+    }
+</style>
 </head>
 <body>
 
-  <!-- Header sẽ tự lấy session, không cần khai báo biến ở đây nữa -->
   <%@include file="header.jsp"%>
 
   <%
   @SuppressWarnings("unchecked")
-  ArrayList<Upload> uploads = (ArrayList<Upload>) session.getAttribute("uploads");
+  ArrayList<File> uploads = (ArrayList<File>) session.getAttribute("uploads");
   %>
 
   <div class="content-downloader list-convert">
@@ -40,15 +73,14 @@
         <tbody>
           <% 
           int i = 1;
-          for (Upload upload : uploads) { 
+          for (File upload : uploads) { 
           %>
           <tr class="active-row">
             <td class="text-center"><%= i %></td>
             <td class="text-center"><%= upload.getFileNameUpload() %></td>
             <td class="text-center">
               <a href="download?file=<%= upload.getFileNameOutputInServer() %>"
-                 target="_blank"
-                 style="color:#fa4f0b; font-weight:bold;">
+                 target="_blank">
                 <%= upload.getFileNameOutput() %>
               </a>
             </td>
@@ -60,7 +92,7 @@
         </tbody>
       </table>
       <% } else { %>
-      <h3 style="text-align:center; margin-top:50px; color:#666;">
+      <h3 style="text-align:center; margin-top:50px; color:#ffffff;">
         You haven't converted any files yet.
       </h3>
       <% } %>

@@ -120,10 +120,61 @@ Boolean signUpStatus = (Boolean) session.getAttribute("signup-status");
   .content { 
     position: relative; 
     z-index: 5; 
-    padding: 20px 20px; 
+    padding: 20px 20px 60px; 
     text-align: center; 
     background: transparent;
     min-height: auto;
+  }
+
+  .progress-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .progress-card {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 24px;
+    text-align: left;
+    color: #1a1a1a;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+  }
+
+  .progress-card h4 {
+    margin-bottom: 8px;
+    font-size: 18px;
+  }
+
+  .progress-bar-shell {
+    width: 100%;
+    height: 16px;
+    background: #ececec;
+    border-radius: 999px;
+    overflow: hidden;
+    margin: 12px 0 8px;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(135deg, #ff6b35, #f27b44);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 10px;
+    border-radius: 999px;
+    transition: width 0.2s ease;
+  }
+
+  .progress-message {
+    font-size: 14px;
+    color: #444;
   }
 
   .features-section { padding: 80px 20px; max-width: 1200px; margin: 0 auto; }
@@ -181,9 +232,12 @@ Boolean signUpStatus = (Boolean) session.getAttribute("signup-status");
       <div class="upload-card">
         <div class="upload-icon">📄</div>
         <a href="#!" class="btn-upload-new" id="uploadLink">
-          <span>Choose PDF File</span>
+          <span>Choose PDF Files</span>
           <span>→</span>
         </a>
+        <p style="margin-top:18px;color:#b0b0b0;font-size:14px;">
+          Hỗ trợ chọn nhiều tệp PDF và chuyển đổi song song.
+        </p>
 
         <% if (loginStatus != null && loginStatus) { %>
         <a href="list" class="btn-secondary">

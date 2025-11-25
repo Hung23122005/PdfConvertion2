@@ -20,7 +20,7 @@ public class Utils {
 		Connection conn = null;
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
-			conn = DriverManager.getConnection("jdbc:mysql://localhost:3307/pdf_convertion44", "root", "");
+			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/pdf_convertion", "root", "");
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
